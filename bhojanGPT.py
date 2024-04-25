@@ -1,16 +1,8 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[3]:
-
-
 import streamlit as st
 import openai
 from openai import OpenAI
 
 client = OpenAI()
-# In[4]:
-
 
 def chat_with_gpt(prompt, client):
     
@@ -22,10 +14,6 @@ def chat_with_gpt(prompt, client):
         ]
     )
     return completion.choices[0].message.content
-
-
-# In[12]:
-
 
 # Streamlit app
 # st.markdown(
@@ -132,20 +120,12 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# In[5]:
-
 st.title("Khaana khazana")
-
-
-# In[ ]:
 
 # Choose input type
 with st.sidebar:
     st.header("Instructions")
     input_type = st.selectbox("", ["Ingredients"])
-
-
-# In[11]:
 
 
 # Get user input
@@ -155,7 +135,6 @@ if input_type == "Ingredients":
     prompt = f"Create a recipe using the following ingredients: {ingredients}. Provide a recipe name, ingredients and detailed steps. Add calories for the recipe as well"
 
 
-# In[7]:
 recipe_name = ""
 ingredients_and_steps = ""
 if st.button("Cook me a meal!"):
@@ -173,7 +152,6 @@ if st.button("Cook me a meal!"):
             ingredients_and_steps += line.strip() + "\n"
 
 
-# In[10]:
 with st.container():
     st.markdown("""
     <style>
