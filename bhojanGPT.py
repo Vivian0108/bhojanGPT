@@ -2,11 +2,15 @@ import streamlit as st
 import os
 from openai import OpenAI
 from prompts import *
+import pandas as pd
 
 os.environ["OPENAI_API_KEY"] = (
     ""
 )
 client = OpenAI()
+recipe_csv_filepath = "Cleaned_Indian_Food_Dataset.csv"
+df = pd.read_csv(recipe_csv_filepath)
+LIST_DISH_SYSTEM_PROMPT = f"{LIST_DISH_SYSTEM_PROMPT}"
 
 # Initialize the session state variables if they don't exist.
 if "dish_suggested" not in st.session_state:

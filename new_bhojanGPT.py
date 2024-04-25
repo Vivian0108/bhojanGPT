@@ -2,11 +2,15 @@ import streamlit as st
 import os
 from openai import OpenAI
 from prompts import *
+import pandas as pd
 
 os.environ["OPENAI_API_KEY"] = (
     ""
 )
 client = OpenAI()
+recipe_csv_filepath = "Cleaned_Indian_Food_Dataset.csv"
+df = pd.read_csv(recipe_csv_filepath)
+FINAL_LIST_DISH_SYSTEM_PROMPT = LIST_DISH_SYSTEM_PROMPT.format(recipe_df = str(df))
 
 # Initialize the session state variables if they don't exist.
 if "ingredients" not in st.session_state:
@@ -98,7 +102,7 @@ if st.button("Give me meal suggestions!", key="suggest_meal"):
     prompt = (
         f"Generate a list of dishes using the following ingredients: {ingredients}."
     )
-    recipe_response = chat_with_gpt(prompt, client, LIST_DISH_SYSTEM_PROMPT)
+    recipe_response = chat_with_gpt(prompt, client, FINAL_LIST_DISH_SYSTEM_PROMPT)
     st.session_state.list_of_dishes = (
         recipe_response  # Store the list of dishes response in session state
     )
@@ -117,8 +121,9 @@ if st.session_state.list_of_dishes:
     if st.button("Cook me a meal!", key="cook_meal"):
         dish_prompt = f"""Generate recipe with detailed instructions and steps for the following dish: {st.session_state.dish_name}
                           based on all or most of the main ingredients mentioned here: {st.session_state.ingredients}."""
+        FINAL_DISH_RECIPE_SYSTEM_PROMPT = DISH_RECIPE_SYSTEM_PROMPT.format(user_list_ingredients=st.session_state.ingredients)
         recipe_steps_response = chat_with_gpt(
-            dish_prompt, client, DISH_RECIPE_SYSTEM_PROMPT
+            dish_prompt, client, FINAL_DISH_RECIPE_SYSTEM_PROMPT
         )
         st.session_state.recipe_steps_response = (
             recipe_steps_response  # Store the recipe steps response in session state
