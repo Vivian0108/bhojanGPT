@@ -9,16 +9,15 @@ os.environ["OPENAI_API_KEY"] = (
 client = OpenAI()
 
 # Initialize the session state variables if they don't exist.
-if "dish_suggested" not in st.session_state:
-    st.session_state.dish_suggested = False
 if "ingredients" not in st.session_state:
     st.session_state.ingredients = ""
 if "list_of_dishes" not in st.session_state:
     st.session_state.list_of_dishes = ""
+if "dish_name" not in st.session_state:
+    st.session_state.dish_name = ""
 
 
 def chat_with_gpt(prompt, client, system_prompt):
-
     completion = client.chat.completions.create(
         model="gpt-4-turbo-2024-04-09",
         messages=[
@@ -28,6 +27,8 @@ def chat_with_gpt(prompt, client, system_prompt):
     )
     return completion.choices[0].message.content
 
+
+# Styles
 st.markdown(
     """
     <style>
@@ -87,72 +88,44 @@ st.title("Khaana khazana")
 # Choose input type
 with st.sidebar:
     st.header("Instructions")
-    input_type = st.selectbox("", ["Ingredients"])
+
+# First input and button to get list of dishes
+ingredients = st.text_input("Enter ingredients separated by commas", key="list_ingredients")
+st.session_state.ingredients = ingredients  # Store the ingredients in session state
 
 
-# Get user input
-prompt = "You are a helpful assistant that creates Indian recipes from a list of ingredients."
-ingredients = ""
-
-if input_type == "Ingredients":
-    ingredients = st.text_input("Enter ingredients separated by commas")
+if st.button("Give me meal suggestions!", key="suggest_meal"):
     prompt = (
         f"Generate a list of dishes using the following ingredients: {ingredients}."
     )
-
-st.session_state.ingredients = ingredients
-
-recipe_name = ""
-list_of_dishes = ""
-if st.button("Give me meal suggestions!"):
     recipe_response = chat_with_gpt(prompt, client, LIST_DISH_SYSTEM_PROMPT)
-    # Split the response into lines and find the recipe name
-    if not recipe_response:
-        recipe_response = "Recipe name"
+    st.session_state.list_of_dishes = (
+        recipe_response  # Store the list of dishes response in session state
+    )
 
-    lines = recipe_response.split("\n")
+# Always display the list of dishes if it's available
+if st.session_state.list_of_dishes:
+    st.markdown(
+        f"<div class='recipe-style'>{st.session_state.list_of_dishes}</div>",
+        unsafe_allow_html=True,
+    )
 
-    for line in lines:
-        if "recipe name" in line.lower():
-            recipe_name = line.strip()
-        else:
-            list_of_dishes += line.strip() + "\n"
+# Second input and button only appear after the first button has been clicked
+if st.session_state.list_of_dishes:
+    st.session_state.dish_name = st.text_input("Enter dish name", key="user_dish_name")
 
-    st.session_state.list_of_dishes = list_of_dishes
-
-    if "list_of_dishes" in st.session_state and st.session_state.list_of_dishes:
-        with st.container() as recipe_container:
-            # Add your recipe content here using st.markdown and st.write
-            st.markdown(f"{recipe_name}")
-            # ... rest of the recipe content ...
-            st.markdown(
-                f'<div class="recipe-style">{st.session_state.list_of_dishes}</div>',
-                unsafe_allow_html=True,
-            )
-            st.session_state.dish_suggested = True
-
-if st.session_state.dish_suggested:
-
-    dish_name = st.text_input("Enter dish name")
-    dish_prompt = f"""Generate recipe with detailed instructions and steps for the following dish: {dish_name}
-                        based on all or most of the main ingredients mentioned here: {ingredients}."""
-
-    if st.button("Cook me a meal!"):
+    if st.button("Cook me a meal!", key="cook_meal"):
+        dish_prompt = f"""Generate recipe with detailed instructions and steps for the following dish: {st.session_state.dish_name}
+                          based on all or most of the main ingredients mentioned here: {st.session_state.ingredients}."""
         recipe_steps_response = chat_with_gpt(
             dish_prompt, client, DISH_RECIPE_SYSTEM_PROMPT
         )
-
-        if not recipe_steps_response:
-            recipe_steps_response = "Recipe Steps"
-
-        st.markdown(
-            f'<div class="recipe-style">{st.session_state.list_of_dishes}</div>',
-            unsafe_allow_html=True,
+        st.session_state.recipe_steps_response = (
+            recipe_steps_response  # Store the recipe steps response in session state
         )
 
-        with st.container() as recipe_steps_container:
-            st.markdown(f"{dish_name}")
-            st.markdown(
-                f'<div class="recipe-style">{recipe_steps_response}</div>',
-                unsafe_allow_html=True,
-            )
+        # Display the recipe steps response
+        st.markdown(
+            f"<div class='recipe-style'>{st.session_state.recipe_steps_response}</div>",
+            unsafe_allow_html=True,
+        )
