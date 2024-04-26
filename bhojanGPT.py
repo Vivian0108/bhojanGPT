@@ -23,8 +23,6 @@ def main():
     df = pd.read_csv(recipe_csv_filepath)
     FINAL_LIST_DISH_SYSTEM_PROMPT = LIST_DISH_SYSTEM_PROMPT.format(recipe_df = str(df))
 
-    
-
 
     def chat_with_gpt(prompt, client, system_prompt):
         completion = client.chat.completions.create(
